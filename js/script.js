@@ -13,22 +13,31 @@ const activitiesMap = new Map( [
     [ "js-libs", { price: 100, conflicts: [ "node" ] } ],
     [ "express", { price: 100, conflicts: [ "js-frameworks" ] } ],
     [ "node", { price: 100, conflicts: [ "js-libs" ] } ],
-    [ "build-tools", { price: 100, conflicts: [ "npm" ] } ],
-    [ "npm", { price: 100, conflicts: [ "build-tools" ] } ]
+    [ "build-tools", { price: 100, conflicts: [  ] } ],
+    [ "npm", { price: 100, conflicts: [ ] } ]
 ] );
 
 // Field requirements
 const fieldRequirementsMap = new Map ( [
-    [ "user_name", { requirement: /^.+$/,
-		     message: "The name field cannot be blank." } ],
-    [ "user_email", { requirement: /^\w+@(\w+\.)*\w+\.\w+$/,
-		      message: "You must provide a valid email address" } ],
-    [ "user_cc-num", { requirement: /^\d{13,16}$/,
-		       message: "You must provide a valid credit card number" } ],
-    [ "user_zip", { requirement: /^\d{5}$/,
-		    message: "You must provide a 5-digit zip code."} ],
-    [ "user_cvv", { requirement: /^\d{3}$/,
-		    message: "You must provide a 3-digit CVV code."} ]
+    [ "user_name", [ { requirement: /^.+$/,
+		     message: "The name field cannot be blank." } ] ],
+    [ "user_email", [ { requirement: /^.+$/,
+			message: "The email field cannot be blank." },
+		      { requirement: /^\w+@(\w+\.)*\w+\.\w+$/,
+			message: "You must provide a valid email address" }
+		    ] ],
+    [ "user_cc-num", [ { requirement: /^.+$/,
+			 message: "The credit card number is required." },
+		       { requirement: /^\d{13,16}$/,
+		       message: "You must provide a valid credit card number" } ] ],
+    [ "user_zip", [ { requirement: /^.+$/,
+		      message: "The zip code is required." },
+		      { requirement: /^\d{5}$/,
+			message: "You must provide a 5-digit zip code."} ] ] ,
+    [ "user_cvv", [ { requirement: /^.+$/,
+		      message: "The CVV code is required." },
+		    { requirement: /^\d{3}$/,
+		      message: "You must provide a 3-digit CVV code."} ] ]
 ] );
 
 // Key field elements
@@ -48,7 +57,8 @@ $( $otherTitleField ).hide();
 // Set a handler to display other role title when other is selected.
 const $titleField = $( "#title" );
 $( $titleField ).change( function( event ) {
-    if ( event.target.value === "other" ) {
+    let element = $( this );
+    if ( element.val() === "other" ) {
 	$otherTitleField.show();
     }
     else {
@@ -65,7 +75,8 @@ const $colorSelector = $( '#colors-js-puns' );
 const $colorFields = $( "#color > option" );
 $( $designField ).change( function(event) {
 
-    let theme = event.target.value;
+    let designElement = $( this );
+    let theme = designElement.val();
     let acceptableColors = themeColorMap.get( theme );
 
     if ( ! acceptableColors ) {
@@ -103,13 +114,14 @@ $( '.activities' ).append( $price );
 
 $activities.on( "change", "input", function( event ) {
 
-    let currentActivity = event.target.name;
+    let element = $( this );
+    let currentActivity = element.attr( "name" );
     let activityInfo = activitiesMap.get( currentActivity );
     let activityPrice = activityInfo[ 'price' ];
     let activityConflicts = activityInfo[ 'conflicts' ];
 
     // Need to figure out if this was toggled on or off.
-    let toggledOn = event.target.checked;
+    let toggledOn = element.prop('checked');
 
     if ( toggledOn ) {
 	currentPrice += activityPrice;
@@ -125,17 +137,21 @@ $activities.on( "change", "input", function( event ) {
 // Watch for changes at the parent
 $activities.change( function(event) {
 
+    let element = $( this );
     let selectedActivities = $('.activities input:checked' ).length;
-
-    console.log( selectedActivities );
+    
     if ( selectedActivities === 0 ) {
-
+	element.css('background-color', 'pink');
+	let $legend = $( ".activities legend" ); 
+	$legend.after( "<span class='errorMessage'>You must select at least one activity.</span>" );
     }
     else {
-
+	element.css('background-color', '');
+	$( ".activities .errorMessage" ).remove( );
     }
 } );
 
+$activities.change();
 
 // Helper function to disable or enable a list of activities.
 //
@@ -169,7 +185,7 @@ const $ccCvvField = $( '#cvv' );
 
 $paymentMethod.change( function( event ) {
 
-    let currentMethod = event.target.value;
+    let currentMethod = $( this ).val();
     if ( currentMethod === "credit card" ) {
 	$creditCardDiv.show();
 	$paypalDiv.hide();
@@ -196,58 +212,134 @@ $( "#payment option[value='select_method']").hide()
 $( "#payment option[value='credit card']").attr( 'selected', true ).change();
 
 
-function checkFieldValidity( event ) {
-    let fieldName = event.target.name;
-    let fieldValue = event.target.value;
-    let fieldRequirementElement = fieldRequirementsMap.get( fieldName );
+// Helper function to check and see if a field is valid or not
+// and, if not, return an error message.
+function getFieldError( element ) {
 
-    if ( ! fieldRequirementElement ) {
+    let fieldName = element.attr("name");
+    let fieldValue = element.val();
+    let fieldRequirementElements = fieldRequirementsMap.get( fieldName );
+
+    if ( ! fieldRequirementElements ) {
 	// We didn't find any requirements, so nothing to do.
 	return;
     }
-    let fieldRequirement = fieldRequirementElement.requirement;
-    let errorMessage = fieldRequirementElement.message;
 
-    let meetsRequirement = fieldRequirement.test( fieldValue );
-    
-    if ( ! meetsRequirement ) {
-	event.currentTarget.style.background = 'pink';
-	if ( errorMessage ) {
-	    $errorElement = "<span class='errorMessage'>" + errorMessage + "</span>";
-	    $( event.target ).prev().append( $errorElement );
+    for ( let i = 0; i < fieldRequirementElements.length; i++ ) {
+	
+	let fieldRequirement = fieldRequirementElements[ i ].requirement;
+	console.log( fieldRequirement );
+	let errorMessage = fieldRequirementElements[ i ].message;
+	
+	let meetsRequirement = fieldRequirement.test( fieldValue );
+	if ( ! meetsRequirement ) {
+	    return( errorMessage );
 	}
     }
+
+    // Looks like everything passed
+    return;
+}
+
+function checkFieldValidity( event ) {
+    let element = $( this );
+    let errorMessage = getFieldError( element );
+    
+    if ( errorMessage ) {
+	// Set the background to indicate the error.
+	element.css('background-color', 'pink');
+
+	// Add a new message if there isn't one already... Otherwise,
+	// replace the old message.
+	let currentError = element.prev().is( ".errorMessage" );
+	if ( ! currentError ) {
+	    element.before(  "<span class='errorMessage'>" + errorMessage + "</span>" );
+	}
+	else {
+	    element.prev().replaceWith( "<span class='errorMessage'>" + errorMessage + "</span>" );
+	}
+	
+    }
     else {
-	event.currentTarget.style.background = '';
-	$( event.target ).prev().remove( ".errorMessage" );
+	element.css('background-color', '');
+	element.prev().remove( ".errorMessage" );
     }
 }
 
-$nameField.change( function ( event ) {
-    checkFieldValidity( event );
-} );
+// Set up handlers to check whether the values of fields are
+// valid or not.
+$nameField.change( checkFieldValidity );
+$emailField.change( checkFieldValidity );
+$ccNumField.change( checkFieldValidity );
+$ccZipField.change( checkFieldValidity );
+$ccCvvField.change( checkFieldValidity );
 
 // Force the change event to do intial validation
 $nameField.change();
-
-
-$emailField.change( function ( event ) {
-    checkFieldValidity( event );
-} );
 $emailField.change();
-
-$ccNumField.change( function ( event ) {
-    checkFieldValidity( event );
-} );
 $ccNumField.change();
-
-$ccZipField.change( function ( event ) {
-    checkFieldValidity( event );
-} );
 $ccZipField.change();
-
-$ccCvvField.change( function ( event ) {
-    checkFieldValidity( event );
-} );
 $ccCvvField.change();
+
+// Set a handler up on the form to do validation
+$( 'form' ).submit( function ( event ) {
+    console.log( "Form submitted." );
+    event.preventDefault();
+
+    let nameError = getFieldError( $nameField );
+    let emailError = getFieldError( $emailField );
+
+    let activitiesError;
+    let selectedActivities = $('.activities input:checked' ).length;
+    if ( selectedActivities === 0 ) {
+	activitiesError = "You must select at least one activity";
+    }
+        
+    let ccRequired;
+    if ( $paymentMethod.val() === "credit card" ) {
+	ccRequired = true;
+    }
+    else {
+	ccRequired = false;
+    }
+
+    let ccNumError = getFieldError( $ccNumField );
+    let ccZipError = getFieldError( $ccZipField );
+    let ccCvvError = getFieldError( $ccCvvField );
+    
+    if ( nameError || emailError || activitiesError || 
+	 ( ccRequired && ( ccNumError || ccZipError || ccCvvError ) ) ) {
+	let errorMessage = "You need to fix the following errors before you submit.";
+	if ( nameError ) {
+	    errorMessage += "\n - " + nameError;
+	}
+
+	if ( emailError ) {
+	    errorMessage += "\n - " + emailError;
+	}
+
+	if ( activitiesError ) {
+	    errorMessage += "\n - " + activitiesError;
+	}
+
+	if ( ccRequired ) {
+	    if ( ccNumError ) {
+		errorMessage += "\n - " + ccNumError;
+	    }
+	    
+	    if ( ccZipError ) {
+		errorMessage += "\n - " + ccZipError;
+	    }
+	    
+	    if ( ccCvvError ) {
+		errorMessage += "\n - " + ccCvvError;
+	    }
+	}
+	
+	alert( errorMessage );
+	return;
+    }    
+} );
+
+
 
