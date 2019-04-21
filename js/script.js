@@ -265,18 +265,18 @@ function checkFieldValidity( event ) {
 
 // Set up handlers to check whether the values of fields are
 // valid or not.
-$nameField.change( checkFieldValidity );
-$emailField.change( checkFieldValidity );
-$ccNumField.change( checkFieldValidity );
-$ccZipField.change( checkFieldValidity );
-$ccCvvField.change( checkFieldValidity );
+$nameField.keyup( checkFieldValidity );
+$emailField.keyup( checkFieldValidity );
+$ccNumField.keyup( checkFieldValidity );
+$ccZipField.keyup( checkFieldValidity );
+$ccCvvField.keyup( checkFieldValidity );
 
 // Force the change event to do intial validation
-$nameField.change();
-$emailField.change();
-$ccNumField.change();
-$ccZipField.change();
-$ccCvvField.change();
+$nameField.keyup();
+$emailField.keyup();
+$ccNumField.keyup();
+$ccZipField.keyup();
+$ccCvvField.keyup();
 
 // Set a handler up on the form to do validation
 $( 'form' ).submit( function ( event ) {
