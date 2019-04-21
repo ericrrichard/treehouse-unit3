@@ -158,7 +158,6 @@ $activities.change();
 // flag says whether or not we should disable (if true) or enable (if false)
 // the list of activities.
 function blockActivities( list, flag ) {
-    console.log( flag );
 
     for ( let i = 0; i < list.length; i++ ) {
 	let currentActivity = $( ".activities input[name='" + list[i] + "']" );
@@ -171,7 +170,6 @@ function blockActivities( list, flag ) {
 	    currentActivity.removeAttr( "disabled" );
 	    currentActivity.parent().css( 'color', '' );
 	}
-	console.log( currentActivity );
     }
 }
 
@@ -228,7 +226,6 @@ function getFieldError( element ) {
     for ( let i = 0; i < fieldRequirementElements.length; i++ ) {
 	
 	let fieldRequirement = fieldRequirementElements[ i ].requirement;
-	console.log( fieldRequirement );
 	let errorMessage = fieldRequirementElements[ i ].message;
 	
 	let meetsRequirement = fieldRequirement.test( fieldValue );
@@ -283,8 +280,6 @@ $ccCvvField.change();
 
 // Set a handler up on the form to do validation
 $( 'form' ).submit( function ( event ) {
-    console.log( "Form submitted." );
-    event.preventDefault();
 
     let nameError = getFieldError( $nameField );
     let emailError = getFieldError( $emailField );
@@ -309,6 +304,8 @@ $( 'form' ).submit( function ( event ) {
     
     if ( nameError || emailError || activitiesError || 
 	 ( ccRequired && ( ccNumError || ccZipError || ccCvvError ) ) ) {
+
+	event.preventDefault();
 	let errorMessage = "You need to fix the following errors before you submit.";
 	if ( nameError ) {
 	    errorMessage += "\n - " + nameError;
