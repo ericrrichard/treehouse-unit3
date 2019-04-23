@@ -134,24 +134,6 @@ $activities.on( "change", "input", function( event ) {
     $price.text( "Total: $" + currentPrice );
 } );
 
-// Watch for changes at the parent
-$activities.change( function(event) {
-
-    let element = $( this );
-    let selectedActivities = $('.activities input:checked' ).length;
-    
-    if ( selectedActivities === 0 ) {
-	element.css('background-color', 'pink');
-	let $legend = $( ".activities legend" ); 
-	$legend.after( "<span class='errorMessage'>You must select at least one activity.</span>" );
-    }
-    else {
-	element.css('background-color', '');
-	$( ".activities .errorMessage" ).remove( );
-    }
-} );
-
-$activities.change();
 
 // Helper function to disable or enable a list of activities.
 //
@@ -265,18 +247,11 @@ function checkFieldValidity( event ) {
 
 // Set up handlers to check whether the values of fields are
 // valid or not.
-$nameField.keyup( checkFieldValidity );
+$nameField.change( checkFieldValidity );
 $emailField.keyup( checkFieldValidity );
-$ccNumField.keyup( checkFieldValidity );
-$ccZipField.keyup( checkFieldValidity );
-$ccCvvField.keyup( checkFieldValidity );
-
-// Force the change event to do intial validation
-$nameField.keyup();
-$emailField.keyup();
-$ccNumField.keyup();
-$ccZipField.keyup();
-$ccCvvField.keyup();
+$ccNumField.change( checkFieldValidity );
+$ccZipField.change( checkFieldValidity );
+$ccCvvField.change( checkFieldValidity );
 
 // Set a handler up on the form to do validation
 $( 'form' ).submit( function ( event ) {
