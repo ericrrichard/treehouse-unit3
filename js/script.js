@@ -178,7 +178,7 @@ $paymentMethod.change( function( event ) {
     }
     else if ( currentMethod === "bitcoin" ) {
 	$creditCardDiv.hide();
-	$paypalDiv.show();
+	$paypalDiv.hide();
 	$bitcoinDiv.show();
     }
     
